@@ -81,6 +81,10 @@ open class LocationNode: SCNNode {
     /// May be useful when you don't know the real altitude of the node
     /// When set to true, the node will stay at the same altitude of the user
     public var ignoreAltitude = false
+    
+    /// The altitude provide in CLLocation will be relative to the altitude of the current position.
+    /// For example an altitude of -1.5 will be about 5 FT from the users location putting a Node on the ground
+    public var relativeAltitude = false
 
     /// The scheme to use for scaling
     public var scalingScheme: ScalingScheme = .normal
@@ -118,7 +122,12 @@ open class LocationNode: SCNNode {
         let distance = self.location(locationManager.bestLocationEstimate).distance(from: location)
 
         var locationTranslation = location.translation(toLocation: locationNodeLocation)
-        locationTranslation.altitudeTranslation = ignoreAltitude ? 0 : locationTranslation.altitudeTranslation
+        
+        if ignoreAltitude {
+            locationTranslation.altitudeTranslation = 0
+        }else if(relativeAltitude) {
+            locationTranslation.altitudeTranslation = locationNodeLocation.altitude;
+        }
 
         let adjustedDistance: CLLocationDistance
         if locationConfirmed && (distance > 100 || continuallyAdjustNodePositionWhenWithinRange || setup) {
